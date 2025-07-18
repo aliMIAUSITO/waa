@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Malla Curricular - Química y Farmacia</title>
+  <style>
+    /* === ESTILOS MORADO PASTEL === */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 20px;
+      background-color: #fef6ff;
+      color: #3c2a4d;
+    }
+    h1 {
+      text-align: center;
+      color: #5e3a87;
+    }
+    .semester {
+      margin-bottom: 30px;
+    }
+    .semester h2 {
+      font-size: 22px;
+      color: #7e4ca0;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #d8bce0;
+      padding-bottom: 5px;
+    }
+    .course-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .course {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #d8bce0;
+      background-color: #f3e6fa;
+      color: #3c2a4d;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      min-width: 200px;
+      flex: 1 1 200px;
+    }
+    .course:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 5px rgba(150, 120, 180, 0.2);
+    }
+    .course.locked {
+      background-color: #eee6f3;
+      color: #aaa;
+      border: 1px solid #e0d3ea;
+      cursor: not-allowed;
+    }
+    .course.completed {
+      background-color: #dcd2e9;
+      color: #4b3663;
+      text-decoration: line-through;
+      border: 1px solid #c2afd3;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Malla Curricular - Química y Farmacia</h1>
+  <div id="malla"></div>
+
+  <script>
+    // === DATOS DE CURSOS ===
+    const cursos = {
+      "BIMI065-18": { nombre: "Biología Celular", semestre: 1, prereq: [] },
+      "MATM067-18": { nombre: "Álgebra", semestre: 1, prereq: [] },
+      "QUIM077-18": { nombre: "Bases de Química", semestre: 1, prereq: [] },
+      "QUIM098-18": { nombre: "Equilibrio Químico", semestre: 2, prereq: ["QUIM077-18"] },
+      "QUIM123-18": { nombre: "Química Orgánica", semestre: 3, prereq: ["QUIM098-18"] },
+      "QUIM160-18": { nombre: "Química Orgánica Aplicada", semestre: 4, prereq: ["QUIM123-18"] },
+      "QUIM169-18": { nombre: "Análisis Instrumental", semestre: 4, prereq: ["QUIM129-18", "FSCA097-18"] },
+      "QFAR140-18": { nombre: "Farmacoquímica y Análisis de Medicamentos", semestre: 5, prereq: ["QUIM169-18"] },
+      // ... Puedes seguir agregando todos los cursos aquí ...
+    };
+
+    const completados = new Set();
+
+    function cumpleRequisitos(codigo) {
+      return cursos[codigo].prereq.every(p => completados.has(p));
+    }
+
+    function renderMalla() {
+      const container = document.getElementById('malla');
+      container.innerHTML = '';
+
+      const semestres = [...new Set(Object.values(cursos).map(c => c.semestre))].sort((a, b) => a - b);
+
+      semestres.forEach(sem => {
+        const bloque = document.createElement('div');
+        bloque.className = 'semester';
+        bloque.innerHTML = `<h2>Semestre ${sem}</h2>`;
+        
+        const grid = document.createElement('div');
+        grid.className = 'course-grid';
+
+        for (let [codigo, curso] of Object.entries(cursos)) {
+          if (curso.semestre !== sem) continue;
+
+          const div = document.createElement('div');
+          div.className = 'course';
+          div.innerText = curso.nombre;
+
+          if (completados.has(codigo)) {
+            div.classList.add('completed');
+          } else if (!cumpleRequisitos(codigo)) {
+            div.classList.add('locked');
+          }
+
+          div.onclick = () => {
+            if (!div.classList.contains('locked')) {
+              completados.add(codigo);
+              renderMalla();
+            }
+          };
+
+          grid.appendChild(div);
+        }
+
+        bloque.appendChild(grid);
+        container.appendChild(bloque);
+      });
+    }
+
+    renderMalla();
+  </script>
+</body>
+</html>
